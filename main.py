@@ -24,6 +24,7 @@ SUBJECT = "subject"
 MESSAGE = "message"
 SEND = {"send", "send email", "proceed", "yes"}
 STOP = {"stop", "goodbye", "bye", "close", "abort", "cancel"}
+INBOX = {"inbox", "read", "open inbox", "read email", "unread email"}
 
 # Import tkinter
 import tkinter as tk
@@ -122,6 +123,8 @@ def open_inbox_window():
                 email_listbox.insert(tk.END, "No emails in the inbox.")
         except Exception as e:
             pygame.mixer.music.load("sounds/inbox-error.wav")
+            pygame.mixer.music.play(loops=0)
+            print("error!")
             inbox_window.destroy()
             return
 
@@ -293,6 +296,10 @@ def voice_command(event=None):
         if any(word in text.lower() for word in SEND):
             print("Wake word detected")
             send_message()
+
+        if any(word in text.lower() for word in INBOX):
+            print("Wake word detected")
+            open_inbox_window()
 
         if any(word in text.lower() for word in STOP):
             print("Wake word detected")
