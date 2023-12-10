@@ -12,17 +12,30 @@ import pyaudio
 import pygame
 import threading
 import tkinter as tk
-from tkinter import ttk
+from tkinter import BOTTOM, SUNKEN, W, X, Frame, Label, StringVar, ttk
 from tkinter import messagebox
+import time
 
 # Define the scope of the Gmail API
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.send']
 
+WAKE = {"start", "new email", "compose","compose message", "write email", "write new email"}
+SUBJECT = "subject"
+MESSAGE = "message"
+SEND = {"send", "send email", "proceed", "yes"}
+STOP = {"stop", "goodbye", "bye", "close", "abort", "cancel"}
 
 # Import tkinter
 import tkinter as tk
 
 pygame.mixer.init()
+
+# Create the main window
+window = tk.Tk()
+window.title("Voice Based Email")
+window.geometry("500x400")
+window.iconbitmap("images/logo.ico")
+window.configure(bg="#f8f8f8")
 
 # Define the voice assistant function
 def speak(text):
@@ -162,8 +175,6 @@ def open_inbox_window():
     pygame.mixer.music.load("sounds/inboxenkuan2.wav")
     pygame.mixer.music.play(loops=0)
 
-
-
 # Define the function to check unread emails
 def check_mails(service):
     try:
@@ -220,26 +231,6 @@ def compose_email():
     send_message(service, "me", message)
 
 
-# Define the function to handle the voice input for recipient field
-def get_recipient():
-    #speak("Who do you want to send the email to?")
-    pygame.mixer.music.load("sounds/to-address.wav")
-    pygame.mixer.music.play(loops=0)
-    recipient = get_audio()
-    to_entry.delete(0, tk.END)
-    to_entry.insert(tk.END, recipient)
-
-
-# Define the function to handle the voice input for subject field
-def get_subject():
-    #speak("What is the subject of the email?")
-    pygame.mixer.music.load("sounds/subject.wav")
-    pygame.mixer.music.play(loops=0)
-    subject = get_audio()
-    subject_entry.delete(0, tk.END)
-    subject_entry.insert(tk.END, subject)
-
-
 # Define the function to handle the voice input for message field
 def get_message():
     #speak("What is the message of the email?")
@@ -249,19 +240,75 @@ def get_message():
     message_text_entry.delete("1.0", tk.END)
     message_text_entry.insert(tk.END, message)
 
+# Define the function to handle the voice input for subject field
+def get_subject():
+    #speak("What is the subject of the email?")
+    pygame.mixer.music.load("sounds/subject.wav")
+    pygame.mixer.music.play(loops=0)
+    subject = get_audio()
+    subject_entry.delete(0, tk.END)
+    subject_entry.insert(tk.END, subject)
+    #get_message()
 
-# Create the main window
-window = tk.Tk()
-window.title("Voice Based Email")
-window.geometry("500x400")
-window.iconbitmap("images/logo.ico")
-window.configure(bg="#f8f8f8")
+# Define the function to handle the voice input for recipient field
+def get_recipient():
+    #speak("Who do you want to send the email to?")
+    pygame.mixer.music.load("sounds/to-address.wav")
+    pygame.mixer.music.play(loops=0)
+    recipient = get_audio()
+    to_entry.delete(0, tk.END)
+    to_entry.insert(tk.END, recipient)
+    time.sleep(3)
+    #get_subject()
+
+
+def voice_command(event=None):
+    # Create a recognizer object
+    r = sr.Recognizer()
+    # Listen to the microphone
+    with sr.Microphone() as source:
+        #speak("I'm Listening...")
+        pygame.mixer.music.load("fx/blip.wav")
+        pygame.mixer.music.play(loops=0)
+        r.pause_threshold = 1
+        r.adjust_for_ambient_noise(source, duration=1)
+        audio = r.listen(source)
+    text = ""
+    # Try to recognize the speech
+    try:
+        text = r.recognize_google(audio)
+        print("You said:", text)
+        # Check if the wake word is in the text
+        if any(word in text.lower() for word in WAKE):
+            print("Wake word detected")
+            get_recipient()
+        if SUBJECT in text.lower():
+            print("Wake word detected")
+            get_subject()
+
+        if MESSAGE in text.lower():
+            print("Wake word detected")
+            get_message()
+
+        if any(word in text.lower() for word in SEND):
+            print("Wake word detected")
+            send_message()
+
+        if any(word in text.lower() for word in STOP):
+            print("Wake word detected")
+            speak("Goodbye")
+            window.destroy()
+    except:
+        # print("Sorry, I could not understand you")
+        pygame.mixer.music.load("fx/error-main.wav")
+        pygame.mixer.music.play(loops=0)
+
 pygame.mixer.music.load("sounds/enkuan2.wav")
 pygame.mixer.music.play(loops=0)
+window.bind("<space>", voice_command)
 # Create the Inbox button
 inbox_button = tk.Button(window, text="Go to Inbox", command=open_inbox_window, bg="crimson", fg="white", borderwidth="0", cursor="arrow")
 inbox_button.grid(row=0, column=0, padx=15, pady=15)
-
 # Create the recipient field
 to_label = tk.Label(window, text="To:",bg="#f8f8f8")
 to_label.grid(row=1, column=0,)
@@ -298,13 +345,11 @@ compose_button.grid(row=4, column=1,pady=10)
 # Authenticate Gmail
 service = authenticate_gmail()
 
-# Check unread emails
 
-
-# Start the main loop
-# Create the main window
-# root = tk.Tk()
+# Pack the button
+compose_button.grid()
 
 
 # Start the main event loop
+window.after(1000, voice_command)
 window.mainloop()
