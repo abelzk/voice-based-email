@@ -24,7 +24,7 @@ SUBJECT = "subject"
 MESSAGE = "message"
 SEND = {"send", "send email", "proceed", "yes"}
 STOP = {"stop", "goodbye", "bye", "close", "abort", "cancel"}
-INBOX = {"inbox", "read", "open inbox", "read email", "unread email"}
+INBOX = {"inbox", "read", "open inbox", "read email", "unread emails"}
 
 # Import tkinter
 import tkinter as tk
