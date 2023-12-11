@@ -1,6 +1,7 @@
 
 import pickle
 import os.path
+import re
 import pyttsx3
 import speech_recognition as sr
 from googleapiclient.discovery import build
@@ -19,12 +20,16 @@ import time
 # Define the scope of the Gmail API
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.send']
 
-WAKE = {"start", "new email", "compose","compose message", "write email", "write new email"}
+WAKE = {"start", "new email", "compose","compose message", "write email", "write new email", "to"}
 SUBJECT = "subject"
 MESSAGE = "message"
 SEND = {"send", "send email", "proceed", "yes"}
 STOP = {"stop", "goodbye", "bye", "close", "abort", "cancel"}
 INBOX = {"inbox", "read", "open inbox", "read email", "unread emails"}
+
+email_pattern = r"[a-zA-z0-9_.+-]+@[a-zA0-z0-9-]+\.[a-zA-z0-9-.]+"
+
+pattern= r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
 
 # Import tkinter
 import tkinter as tk
@@ -58,8 +63,11 @@ def get_audio():
         audio = r.listen(source)
     said = ""
     try:
-        said = r.recognize_google(audio)
+        said = r.recognize_google(audio,language="en-US")
         print(said)
+        match = re.search(email_pattern, said)
+        if match:
+            print("email:" + match.group())
     except sr.UnknownValueError:
         # messagebox.showinfo("Error", "Sorry, I didn't catch that.")
         pygame.mixer.music.load("sounds/soryididnotget2.wav")
@@ -157,7 +165,7 @@ def open_inbox_window():
     def read_email_aloud():
         selected_email = email_listbox.get(email_listbox.curselection())
         engine = pyttsx3.init()
-        engine.say(selected_email)
+        speak(selected_email)
         engine.runAndWait()
 
     # Create the button to read email aloud
@@ -273,37 +281,51 @@ def voice_command(event=None):
         #speak("I'm Listening...")
         pygame.mixer.music.load("fx/blip.wav")
         pygame.mixer.music.play(loops=0)
-        r.pause_threshold = 1
+        #r.pause_threshold = 1
         r.adjust_for_ambient_noise(source, duration=1)
         audio = r.listen(source)
     text = ""
     # Try to recognize the speech
     try:
-        text = r.recognize_google(audio)
+        text = r.recognize_google(audio, language="en-US")
         print("You said:", text)
         # Check if the wake word is in the text
         if any(word in text.lower() for word in WAKE):
+            # Print a message
             print("Wake word detected")
+            # Get the recipient of the email
             get_recipient()
-        if SUBJECT in text.lower():
-            print("Wake word detected")
+        # Check if the subject keyword is in the text
+        elif SUBJECT in text.lower():
+            # Print a message
+            print("Subject keyword detected")
+            # Get the subject of the email
             get_subject()
-
-        if MESSAGE in text.lower():
-            print("Wake word detected")
+        # Check if the message keyword is in the text
+        elif MESSAGE in text.lower():
+            # Print a message
+            print("Message keyword detected")
+            # Get the message of the email
             get_message()
-
-        if any(word in text.lower() for word in SEND):
-            print("Wake word detected")
-            send_message()
-
-        if any(word in text.lower() for word in INBOX):
-            print("Wake word detected")
+        # Check if the send keyword is in the text
+        elif any(word in text.lower() for word in SEND):
+            # Print a message
+            print("Send keyword detected")
+            # Send the email
+            compose_email()
+        # Check if the inbox keyword is in the text
+        elif any(word in text.lower() for word in INBOX):
+            # Print a message
+            print("Inbox keyword detected")
+            # Open the inbox window
             open_inbox_window()
-
-        if any(word in text.lower() for word in STOP):
-            print("Wake word detected")
+        # Check if the stop keyword is in the text
+        elif any(word in text.lower() for word in STOP):
+            # Print a message
+            print("Stop keyword detected")
+            # Speak a farewell
             speak("Goodbye")
+            # Close the window
             window.destroy()
     except:
         # print("Sorry, I could not understand you")
