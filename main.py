@@ -27,9 +27,8 @@ SEND = {"send", "send email", "proceed", "yes"}
 STOP = {"stop", "goodbye", "bye", "close", "abort", "cancel"}
 INBOX = {"inbox", "read", "open inbox", "read email", "unread emails"}
 
-email_pattern = r"[a-zA-z0-9_.+-]+@[a-zA0-z0-9-]+\.[a-zA-z0-9-.]+"
-
-pattern= r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+# Define the email pattern as a regular expression
+email_pattern = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"
 
 # Import tkinter
 import tkinter as tk
@@ -278,10 +277,9 @@ def voice_command(event=None):
     r = sr.Recognizer()
     # Listen to the microphone
     with sr.Microphone() as source:
-        #speak("I'm Listening...")
         pygame.mixer.music.load("fx/blip.wav")
         pygame.mixer.music.play(loops=0)
-        #r.pause_threshold = 1
+        r.pause_threshold = 1
         r.adjust_for_ambient_noise(source, duration=1)
         audio = r.listen(source)
     text = ""
@@ -380,5 +378,5 @@ compose_button.grid()
 
 
 # Start the main event loop
-window.after(1000, voice_command)
+window.after(1200, voice_command)
 window.mainloop()
