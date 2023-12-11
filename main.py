@@ -266,9 +266,17 @@ def get_recipient():
     pygame.mixer.music.load("sounds/to-address.wav")
     pygame.mixer.music.play(loops=0)
     recipient = get_audio()
-    to_entry.delete(0, tk.END)
-    to_entry.insert(tk.END, recipient)
-    time.sleep(3)
+    recipient = recipient.replace(" ", "")
+    #replace the word "at" with the character "@"
+    recipient = recipient.replace("at", "@")
+    match = re.search(email_pattern, recipient)
+    if match:
+        #speak("The email address is {}".format(match.group()))
+        to_entry.delete(0, tk.END)
+        to_entry.insert(tk.END, recipient)
+    else:
+        pygame.mixer.music.load("sounds/wrong-email.wav")
+        pygame.mixer.music.play(loops=0)
     #get_subject()
 
 
@@ -353,7 +361,6 @@ message_text_label = tk.Label(window, text="Message:",bg="#f8f8f8")
 message_text_label.grid(row=3, column=0,)
 message_text_entry = tk.Text(window, width=40, height=10)
 message_text_entry.grid(row=3, column=1,)
-
 
 
 # Create the voice input buttons
